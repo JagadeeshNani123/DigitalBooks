@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PurchaseService", "Purchase
 		{6EF57086-77E3-42C5-AD3E-EAEF052EE733} = {6EF57086-77E3-42C5-AD3E-EAEF052EE733}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserValidation", "UserValidation\UserValidation.csproj", "{2E7D4E73-80CA-474B-8B72-526E4EB75F91}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{EB738313-B0F1-4BF9-8C67-E921FF125D34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB738313-B0F1-4BF9-8C67-E921FF125D34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB738313-B0F1-4BF9-8C67-E921FF125D34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E7D4E73-80CA-474B-8B72-526E4EB75F91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E7D4E73-80CA-474B-8B72-526E4EB75F91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E7D4E73-80CA-474B-8B72-526E4EB75F91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E7D4E73-80CA-474B-8B72-526E4EB75F91}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
