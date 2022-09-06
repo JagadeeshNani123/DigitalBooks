@@ -12,16 +12,16 @@ namespace DigitalBooksWebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UsersController : ControllerBase
     {
         private readonly DigitalBooksContext _context;
 
-        public UserController(DigitalBooksContext context)
+        public UsersController(DigitalBooksContext context)
         {
             _context = context;
         }
 
-        // GET: api/User
+        // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
@@ -32,7 +32,7 @@ namespace DigitalBooksWebAPI.Controllers
             return await _context.Users.ToListAsync();
         }
 
-        // GET: api/User/5
+        // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
@@ -50,7 +50,7 @@ namespace DigitalBooksWebAPI.Controllers
             return user;
         }
 
-        // PUT: api/User/5
+        // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User user)
@@ -59,7 +59,6 @@ namespace DigitalBooksWebAPI.Controllers
             {
                 return BadRequest();
             }
-
             _context.Entry(user).State = EntityState.Modified;
 
             try
@@ -81,7 +80,7 @@ namespace DigitalBooksWebAPI.Controllers
             return NoContent();
         }
 
-        // POST: api/User
+        // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
@@ -90,10 +89,6 @@ namespace DigitalBooksWebAPI.Controllers
           {
               return Problem("Entity set 'DigitalBooksContext.Users'  is null.");
           }
-            else
-            {
-                user.Password = PasswordEncryptionAndDecryption.EncodePasswordToBase64(user.Password);
-            }
             _context.Users.Add(user);
             try
             {
@@ -114,7 +109,7 @@ namespace DigitalBooksWebAPI.Controllers
             return CreatedAtAction("GetUser", new { id = user.UserId }, user);
         }
 
-        // DELETE: api/User/5
+        // DELETE: api/Users/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {

@@ -56,18 +56,6 @@ namespace DigitalBooksWebAPI.Models
                 entity.Property(e => e.Publisher)
                     .HasMaxLength(500)
                     .IsUnicode(false);
-
-                entity.HasOne(d => d.Category)
-                    .WithMany(p => p.Books)
-                    .HasForeignKey(d => d.CategoryId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Book__CategoryId__2C3393D0");
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Books)
-                    .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Book__UserId__2F10007B");
             });
 
             modelBuilder.Entity<Category>(entity =>
@@ -96,12 +84,6 @@ namespace DigitalBooksWebAPI.Models
                     .IsUnicode(false);
 
                 entity.Property(e => e.PurchaseDate).HasColumnType("date");
-
-                entity.HasOne(d => d.Book)
-                    .WithMany(p => p.Purchases)
-                    .HasForeignKey(d => d.BookId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Purchase__BookId__300424B4");
             });
 
             modelBuilder.Entity<RoleMaster>(entity =>
@@ -143,12 +125,6 @@ namespace DigitalBooksWebAPI.Models
                 entity.Property(e => e.UserName)
                     .HasMaxLength(500)
                     .IsUnicode(false);
-
-                entity.HasOne(d => d.Role)
-                    .WithMany(p => p.Users)
-                    .HasForeignKey(d => d.RoleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Users__RoleId__31EC6D26");
             });
 
             OnModelCreatingPartial(modelBuilder);

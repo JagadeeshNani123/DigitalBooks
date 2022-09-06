@@ -57,7 +57,7 @@ if (app.Environment.IsDevelopment())
 app.MapPost("/validate", [AllowAnonymous] (UserValidationRequestModel request, HttpContext http, ITokenService tokenService) =>
 {
     var userName = request.UserName;
-    var password = PasswordEncryptionAndDecryption.EncodePasswordToBase64(request.Password);
+    var password = request.Password;
     var user = new UserValidationCheck(userName, password);
     var isValidUser = user.IsValidUser();
     if (isValidUser)
@@ -68,7 +68,7 @@ app.MapPost("/validate", [AllowAnonymous] (UserValidationRequestModel request, H
                                             {
                                                  builder.Configuration["jwt:Aud"]
                                              },
-                                             request.UserName);
+                                             userName);
 
         return new
         {

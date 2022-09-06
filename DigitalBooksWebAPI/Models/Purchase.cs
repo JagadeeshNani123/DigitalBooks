@@ -10,7 +10,5 @@ namespace DigitalBooksWebAPI.Models
         public int BookId { get; set; }
         public DateTime PurchaseDate { get; set; }
         public string PaymentMode { get; set; } = null!;
-
-        public virtual Book Book { get; set; } = null!;
     }
 }
