@@ -1,6 +1,6 @@
 ﻿using DigitalBooksWebAPI.Models;
 
-namespace UserValidation.Services
+namespace DigitalBooksWebAPI.Services
 {
     public class UserValidationCheck
     {

@@ -1,6 +1,7 @@
 using DigitalBooksWebAPI.Models;
 using DigitalBooksWebAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Ocelot.DependencyInjection;
@@ -46,15 +47,47 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+//app.UseOcelot().Wait();
+
+app.MapPost("/validate", [AllowAnonymous] (UserValidationRequestModel request, HttpContext http, ITokenService tokenService) =>
+{
+    var userName = request.UserName;
+    var password = PasswordEncryptionAndDecryption.EncodePasswordToBase64(request.Password);
+    var user = new UserValidationCheck(userName, password);
+    var isValidUser = user.IsValidUser();
+    if (isValidUser)
+    {
+        var token = tokenService.buildToken(builder.Configuration["jwt:key"],
+                                            builder.Configuration["jwt:issuer"],
+                                             new[]
+                                            {
+                                                 builder.Configuration["jwt:Aud"]
+                                             },
+                                             request.UserName);
+
+        return new
+        {
+            Token = token,
+            IsAuthenticated = true
+        };
+    }
+    return new
+    {
+        Token = string.Empty,
+        IsAuthenticated = false
+    };
+}).WithName("validate");
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.UseOcelot().Wait();
+
 
 app.MapControllers();
 

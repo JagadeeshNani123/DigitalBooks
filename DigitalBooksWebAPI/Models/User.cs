@@ -19,7 +19,7 @@ namespace DigitalBooksWebAPI.Models
         public string FirstName { get; set; } = null!;
         public string LastName { get; set; } = null!;
 
-        public virtual RoleMaster Role { get; set; } = null!;
-        public virtual ICollection<Book> Books { get; set; }
+        public virtual RoleMaster Role { get; set; }
+        public virtual ICollection<Book> Books { get; set; } 
     }
 }
