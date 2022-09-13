@@ -6,23 +6,21 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DigitalBooksWebAPI.Models;
-using DigitalBooksWebAPI.Services;
-using Ocelot.RequestId;
 
 namespace DigitalBooksWebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class AuthorsController : ControllerBase
     {
         private readonly DigitalBooksContext _context;
 
-        public UsersController(DigitalBooksContext context)
+        public AuthorsController(DigitalBooksContext context)
         {
             _context = context;
         }
 
-        // GET: api/Users
+        // GET: api/Authors
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
@@ -33,7 +31,7 @@ namespace DigitalBooksWebAPI.Controllers
             return await _context.Users.ToListAsync();
         }
 
-        // GET: api/Users/5
+        // GET: api/Authors/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
@@ -51,7 +49,7 @@ namespace DigitalBooksWebAPI.Controllers
             return user;
         }
 
-        // PUT: api/Users/5
+        // PUT: api/Authors/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User user)
@@ -60,6 +58,7 @@ namespace DigitalBooksWebAPI.Controllers
             {
                 return BadRequest();
             }
+
             _context.Entry(user).State = EntityState.Modified;
 
             try
@@ -81,23 +80,16 @@ namespace DigitalBooksWebAPI.Controllers
             return NoContent();
         }
 
-        // POST: api/Users
+        // POST: api/Authors
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
-            var userId = user.UserId;
-            var users = await _context.Users.ToListAsync();
-            if (users.Count == 0)
-            {
-                userId = 1;
-                return Problem("Entity set 'DigitalBooksContext.Users'  is null.");
-            }
-            if (userId == 0)
-                user.UserId = users.Max(x => x.UserId) + 1;
-
+          if (_context.Users == null)
+          {
+              return Problem("Entity set 'DigitalBooksContext.Users'  is null.");
+          }
             _context.Users.Add(user);
-
             try
             {
                 await _context.SaveChangesAsync();
@@ -117,7 +109,7 @@ namespace DigitalBooksWebAPI.Controllers
             return CreatedAtAction("GetUser", new { id = user.UserId }, user);
         }
 
-        // DELETE: api/Users/5
+        // DELETE: api/Authors/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -137,23 +129,6 @@ namespace DigitalBooksWebAPI.Controllers
             return NoContent();
         }
 
-        // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        [Route("GetUserByUsingCredentials")]
-        public User GetUserByLoginCredentials(UserValidationRequestModel request)
-        {
-            var user = _context.Users.FirstOrDefault(user => user.UserName == request.UserName && user.Password == request.Password);
-            return user;
-        }
-
-        [HttpGet]
-        [Route("AuthorList")]
-        public List<User> GetAuthorList()
-        {
-            var role = _context.RoleMasters.FirstOrDefault(role => role.RoleName.Contains("Author"));
-            return _context.Users.Where(user => user.RoleId == role.RoleId).ToList();
-        }
         private bool UserExists(int id)
         {
             return (_context.Users?.Any(e => e.UserId == id)).GetValueOrDefault();

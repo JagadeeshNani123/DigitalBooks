@@ -13,6 +13,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DigitalBooksContext>(options => options.
 UseSqlServer(builder.Configuration.GetConnectionString("conn")));
 
+
+builder.Services.AddCors((setup) =>
+{
+    setup.AddPolicy("default", (options) => { options.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin(); });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -25,7 +31,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
+app.UseCors("default");
 app.MapControllers();
 
 app.Run();

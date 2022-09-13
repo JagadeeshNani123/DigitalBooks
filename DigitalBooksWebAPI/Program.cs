@@ -42,6 +42,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddSingleton<ITokenService>(new TokenService());
 
+builder.Services.AddCors((setup) =>
+{
+    setup.AddPolicy("default", (options) => { options.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin(); });
+});
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -54,7 +60,7 @@ if (app.Environment.IsDevelopment())
 
 //app.UseOcelot().Wait();
 
-app.MapPost("/validate", [AllowAnonymous] (UserValidationRequestModel request, HttpContext http, ITokenService tokenService) =>
+app.MapPost("/validate", [AllowAnonymous] (UserValidationRequestModel request) =>
 {
     var userName = request.UserName;
     var password = request.Password;
@@ -62,6 +68,7 @@ app.MapPost("/validate", [AllowAnonymous] (UserValidationRequestModel request, H
     var isValidUser = user.IsValidUser();
     if (isValidUser)
     {
+        var tokenService = new TokenService();
         var token = tokenService.buildToken(builder.Configuration["jwt:key"],
                                             builder.Configuration["jwt:issuer"],
                                              new[]
@@ -83,11 +90,13 @@ app.MapPost("/validate", [AllowAnonymous] (UserValidationRequestModel request, H
     };
 }).WithName("validate");
 
+app.UseCors("default");
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-
+app.UseOcelot();
 
 app.MapControllers();
 

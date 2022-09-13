@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using DigitalBooksWebAPI.Models;
 using DigitalBooksWebAPI.Services;
 
-namespace BookService.Controllers
+namespace DigitalBooksWebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -132,8 +132,11 @@ namespace BookService.Controllers
 
         [HttpGet]
         [Route("SearchBooks")]
-        public List<BookMasterViewModel> SearchBooks(int categoryID, int authorID, decimal price)
+        public List<BookMasterViewModel> SearchBooks(string cID, string aID, decimal price)
         {
+            var categoryID = int.Parse(cID);
+            var authorID = int.Parse(aID);
+
             List<BookMasterViewModel> lsBookMaster = new List<BookMasterViewModel>();
             if (_context.Books == null)
             {
@@ -178,6 +181,16 @@ namespace BookService.Controllers
             return lsBookMaster;
         }
 
+        [HttpGet]
+        [Route("BookSerchList")]
+        public List<Book> GetBookSearchlist(string bookName, string authorName, string publisher, DateTime publishedDate)
+        {
+            var bookSearchList = _context.Books.Where(e => e.BookName == bookName || e.Publisher == publisher || e.PublishedDate == publishedDate).ToList();
+            var author = _context.Users.FirstOrDefault(u => u.UserName.Contains(authorName));
+            if (author != null)
+                bookSearchList.AddRange(_context.Books.Where(e => e.UserId == author.UserId).ToList());
+            return bookSearchList.Distinct().ToList();
+        }
         private bool BookExists(int id)
         {
             return (_context.Books?.Any(e => e.BookId == id)).GetValueOrDefault();
