@@ -51,8 +51,7 @@ namespace DigitalBooksWebAPI.Controllers
             return purchase;
         }
 
-        [HttpGet]
-        [Route("BookHistory")]
+        [HttpGet("BookHistory/{emailId}")]
         public List<Purchase> GetPurchaseData(string emailId)
         {
             var purchases =  _context.Purchases.Where(p=> p.EmailId==emailId).ToList();
@@ -101,7 +100,10 @@ namespace DigitalBooksWebAPI.Controllers
           {
               return Problem("Entity set 'DigitalBooksContext.Purchases'  is null.");
           }
+            var purchasesList = await _context.Purchases.ToListAsync();
+            var purchaseId = purchase.PurchaseId == 0 ? purchasesList.Max(x => x.PurchaseId) + 1 : 1;
             purchase.PurchaseDate = DateTime.UtcNow;
+            purchase.PurchaseId = purchaseId;
             _context.Purchases.Add(purchase);
             try
             {

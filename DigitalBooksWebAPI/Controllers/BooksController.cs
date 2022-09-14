@@ -91,6 +91,9 @@ namespace DigitalBooksWebAPI.Controllers
           {
               return Problem("Entity set 'DigitalBooksContext.Books'  is null.");
           }
+            var books = await _context.Books.ToListAsync();
+            var bookId= book.BookId ==0? books.Max(x => x.BookId) + 1: 1;
+            book.BookId = bookId;
             _context.Books.Add(book);
             try
             {
@@ -226,8 +229,7 @@ namespace DigitalBooksWebAPI.Controllers
             return lsBookMaster;
         }
 
-        [HttpGet]
-        [Route("SearchBooks")]
+        [HttpGet("SearchBooks/{categoryID}/{authorID}/{price}")]
         public List<BookMasterViewModel> SearchBooks(int categoryID, int authorID, decimal price)
         {
             List<BookMasterViewModel> lsBookMaster = new List<BookMasterViewModel>();
