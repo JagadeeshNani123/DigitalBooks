@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DigitalBooksWebAPI.Models;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using DigitalBooksWebAPI.Services;
 
 namespace DigitalBooksWebAPI.Controllers
 {
@@ -100,6 +101,7 @@ namespace DigitalBooksWebAPI.Controllers
           {
               return Problem("Entity set 'DigitalBooksContext.Purchases'  is null.");
           }
+            purchase.PurchaseDate = DateTime.UtcNow;
             _context.Purchases.Add(purchase);
             try
             {
@@ -138,6 +140,91 @@ namespace DigitalBooksWebAPI.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        // Get purchased book history
+        [HttpGet]
+        [Route("GetPurchasedBookHistory")]
+        public List<BookHistoryViewModel> GetPurchasedBookHistory(string EmailId)
+        {
+            List<BookHistoryViewModel> lsBookHistory = new List<BookHistoryViewModel>();
+            if (_context.Purchases == null)
+            {
+                return lsBookHistory;
+            }
+
+            lsBookHistory = (from purchase in _context.Purchases
+                             join book in _context.Books on purchase.BookId equals book.BookId
+                             where purchase.EmailId == EmailId && book.Active == true
+                             select new
+                             {
+                                 purchaseId = purchase.PurchaseId,
+                                 bookId = book.BookId,
+                                 bookName = book.BookName
+                             }).ToList()
+                     .Select(x => new BookHistoryViewModel()
+                     {
+                         PurchaseId = x.purchaseId,
+                         BookId = x.bookId,
+                         BookName = x.bookName
+                     }).ToList();
+
+            return lsBookHistory.Distinct().ToList();
+        }
+        // Get All Books With Status Purchase or not
+        [HttpGet]
+        [Route("GetBooksWithStatus")]
+        public List<BookMasterViewModel> GetBooksWithStatus(string emailId)
+        {
+            List<BookMasterViewModel> lsBookHistory = new List<BookMasterViewModel>();
+            if (_context.Purchases == null)
+            {
+                return lsBookHistory;
+            }
+
+
+            lsBookHistory = (from book in _context.Books
+                             join user in _context.Users
+                             on book.UserId equals user.UserId
+                             join category in _context.Categories
+                             on book.CategoryId equals category.CategoryId
+                             join purchase in _context.Purchases
+                  on book.BookId equals purchase.BookId
+                  into BookPurchaseGroup
+                             from pur in BookPurchaseGroup.DefaultIfEmpty()
+                             select new
+                             {
+                                 purchaseId = pur.PurchaseId == null ? 0 : pur.PurchaseId,
+                                 bookId = book.BookId,
+                                 Title = book.BookName,
+                                 Author = user.FirstName + " " + user.LastName,
+                                 Publisher = book.Publisher,
+                                 Price = book.Price,
+                                 PublishedDate = book.PublishedDate,
+                                 CategoryName = category.CategoryName,
+                                 Email = pur.EmailId == null || pur.EmailId!=emailId ? "NA" : pur.EmailId,
+                                 BookContent = book.Content,
+                                 Active = book.Active
+                             }).ToList()
+            .Select(x => new BookMasterViewModel()
+            {
+                BookId = x.bookId,
+                Title = x.Title,
+                Author = x.Author,
+                Publisher = x.Publisher,
+                Price = Convert.ToDouble(x.Price),
+                PublishedDate = x.PublishedDate,
+                CategoryName = x.CategoryName,
+                Email = x.Email,
+                BookContent = x.BookContent,
+                Active = x.Active
+            }).ToList();
+
+           
+
+            lsBookHistory = lsBookHistory.Where(x => x.Email == emailId || x.Email == "NA").ToList().Distinct().ToList();
+            lsBookHistory = lsBookHistory.GroupBy(x => x.BookId).Select(y => y.First()).ToList();
+            return lsBookHistory;
         }
 
         private bool PurchaseExists(int id)

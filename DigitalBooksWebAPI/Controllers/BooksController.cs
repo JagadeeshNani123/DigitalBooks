@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DigitalBooksWebAPI.Models;
 using DigitalBooksWebAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DigitalBooksWebAPI.Controllers
 {
@@ -131,12 +132,104 @@ namespace DigitalBooksWebAPI.Controllers
         }
 
         [HttpGet]
-        [Route("SearchBooks")]
-        public List<BookMasterViewModel> SearchBooks(string cID, string aID, decimal price)
+        [Route("SearchBook")]
+        public List<BookMasterViewModel> SearchBook(string title, int authorID, string publisher, DateTime publishedDate)
         {
-            var categoryID = int.Parse(cID);
-            var authorID = int.Parse(aID);
+            List<BookMasterViewModel> lsBookMaster = new List<BookMasterViewModel>();
+            if (_context.Books == null)
+            {
+                return lsBookMaster;
+            }
 
+            try
+            {
+                lsBookMaster = (from b in _context.Books
+                                join users in _context.Users on b.UserId equals users.UserId
+                                where b.BookName == title && b.UserId == authorID
+                                && b.Publisher == publisher && b.PublishedDate.Date == publishedDate.Date
+                                && b.Active == true
+                                select new
+                                {
+                                    BookId = b.BookId,
+                                    BookName = b.BookName,
+                                    Author = users.FirstName + " " + users.LastName,
+                                    Publisher = b.Publisher,
+                                    Price = b.Price,
+                                    PublishedDate = b.PublishedDate
+
+                                }).ToList()
+                                .Select(x => new BookMasterViewModel()
+                                {
+                                    BookId = x.BookId,
+                                    Title = x.BookName,
+                                    Author = x.Author,
+                                    Publisher = x.Publisher,
+                                    Price = Convert.ToDouble(x.Price),
+                                    PublishedDate = x.PublishedDate
+                                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                return lsBookMaster;
+            }
+
+            return lsBookMaster;
+        }
+
+        [HttpGet]
+        [Route("GetALllBooks")]
+        public List<BookMasterViewModel> GetAllBooks()
+        {
+            List<BookMasterViewModel> lsBookMaster = new List<BookMasterViewModel>();
+            if (_context.Books == null)
+            {
+                return lsBookMaster;
+            }
+
+            try
+            {
+                lsBookMaster = (from b in _context.Books
+                                join users in _context.Users on b.UserId equals users.UserId
+                                join category in _context.Categories on b.CategoryId equals category.CategoryId
+                              
+                                select new
+                                {
+                                    BookId = b.BookId,
+                                    BookName = b.BookName,
+                                    Author = users.UserName,
+                                    Publisher = b.Publisher,
+                                    Price = b.Price,
+                                    PublishedDate = b.PublishedDate,
+                                    CategoryName = category.CategoryName,
+                                    Active = b.Active,
+                                    BookContent=b.Content
+
+                                }).ToList()
+                                .Select(x => new BookMasterViewModel()
+                                {
+                                    BookId = x.BookId,
+                                    Title = x.BookName,
+                                    Author = x.Author,
+                                    Publisher = x.Publisher,
+                                    Price = Convert.ToDouble(x.Price),
+                                    PublishedDate = x.PublishedDate,
+                                    CategoryName = x.CategoryName,
+                                    Active = x.Active,
+                                    BookContent=x.BookContent
+                                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                return lsBookMaster;
+            }
+
+            return lsBookMaster;
+        }
+
+        [HttpGet]
+        [Route("SearchBooks")]
+        public List<BookMasterViewModel> SearchBooks(int categoryID, int authorID, decimal price)
+        {
             List<BookMasterViewModel> lsBookMaster = new List<BookMasterViewModel>();
             if (_context.Books == null)
             {
@@ -159,7 +252,9 @@ namespace DigitalBooksWebAPI.Controllers
                                     Publisher = b.Publisher,
                                     Price = b.Price,
                                     PublishedDate = b.PublishedDate,
-                                    CategoryName = category.CategoryName
+                                    CategoryName = category.CategoryName,
+                                    Active = b.Active,
+                                    BookContent = b.Content
 
                                 }).ToList()
                                 .Select(x => new BookMasterViewModel()
@@ -170,7 +265,9 @@ namespace DigitalBooksWebAPI.Controllers
                                     Publisher = x.Publisher,
                                     Price = Convert.ToDouble(x.Price),
                                     PublishedDate = x.PublishedDate,
-                                    CategoryName = x.CategoryName
+                                    CategoryName = x.CategoryName,
+                                    Active = x.Active,
+                                    BookContent = x.BookContent
                                 }).ToList();
             }
             catch (Exception ex)
@@ -181,19 +278,56 @@ namespace DigitalBooksWebAPI.Controllers
             return lsBookMaster;
         }
 
-        [HttpGet]
-        [Route("BookSerchList")]
-        public List<Book> GetBookSearchlist(string bookName, string authorName, string publisher, DateTime publishedDate)
+        [HttpGet("UpdateBookStatus/{BookId}/{UserID}/{Status}")]
+        //[Authorize]
+        public async Task<IActionResult> UpdateBookStatus(int BookId, int UserID, bool Status)
         {
-            var bookSearchList = _context.Books.Where(e => e.BookName == bookName || e.Publisher == publisher || e.PublishedDate == publishedDate).ToList();
-            var author = _context.Users.FirstOrDefault(u => u.UserName.Contains(authorName));
-            if (author != null)
-                bookSearchList.AddRange(_context.Books.Where(e => e.UserId == author.UserId).ToList());
-            return bookSearchList.Distinct().ToList();
+            if (BookId < 1)
+            {
+                return BadRequest();
+            }
+
+            if (BookMasterWithAuthorExists(BookId, UserID))
+            {
+                var book = _context.Books.Find(BookId);
+                book.Active = Status;
+                book.ModifiedDate = DateTime.Now;
+                _context.Entry(book).State = EntityState.Modified;
+                //context.Entry(user).State = Entitystate.Modified;
+            }
+            else
+                return NotFound();
+
+            try
+            {
+                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BookMasterExists(BookId))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
         private bool BookExists(int id)
         {
             return (_context.Books?.Any(e => e.BookId == id)).GetValueOrDefault();
+        }
+        private bool BookMasterExists(int id)
+        {
+            return (_context.Books?.Any(e => e.BookId == id)).GetValueOrDefault();
+        }
+        private bool BookMasterWithAuthorExists(int id, int userID)
+        {
+            return (_context.Books?.Any(e => e.BookId == id && e.UserId == userID)).GetValueOrDefault();
         }
     }
 }

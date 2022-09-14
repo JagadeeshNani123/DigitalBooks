@@ -14,6 +14,11 @@ namespace DigitalBooksWebAPI.Services
             Password = password;
         }
 
+
+        public User GetUser()
+        {
+            return _context.Users.FirstOrDefault(user => user.UserName == UserName && user.Password == Password);
+        }
         public bool IsValidUser()
         {
             return  _context.Users.Any(user => user.UserName == UserName && user.Password == Password);

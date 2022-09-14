@@ -64,8 +64,9 @@ app.MapPost("/validate", [AllowAnonymous] (UserValidationRequestModel request) =
 {
     var userName = request.UserName;
     var password = request.Password;
-    var user = new UserValidationCheck(userName, password);
-    var isValidUser = user.IsValidUser();
+    var loggedUserObject = new UserValidationCheck(userName, password);
+    var isValidUser = loggedUserObject.IsValidUser();
+    var user = loggedUserObject.GetUser();
     if (isValidUser)
     {
         var tokenService = new TokenService();
@@ -80,13 +81,15 @@ app.MapPost("/validate", [AllowAnonymous] (UserValidationRequestModel request) =
         return new
         {
             Token = token,
+            User = user,
             IsAuthenticated = true
         };
     }
     return new
     {
         Token = string.Empty,
-        IsAuthenticated = false
+        User = user,
+    IsAuthenticated = false
     };
 }).WithName("validate");
 
@@ -96,7 +99,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.UseOcelot();
+
 
 app.MapControllers();
 
