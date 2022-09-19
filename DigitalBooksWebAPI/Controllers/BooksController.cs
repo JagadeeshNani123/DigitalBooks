@@ -87,12 +87,11 @@ namespace DigitalBooksWebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Book>> PostBook(Book book)
         {
-          if (_context.Books == null)
-          {
-              return Problem("Entity set 'DigitalBooksContext.Books'  is null.");
-          }
+         
             var books = await _context.Books.ToListAsync();
-            var bookId= book.BookId ==0? books.Max(x => x.BookId) + 1: 1;
+            var bookId = 1;
+            if (books.Count != 0)
+                bookId = books.Max(x => x.BookId) + 1;
             book.BookId = bookId;
             _context.Books.Add(book);
             try
@@ -194,7 +193,7 @@ namespace DigitalBooksWebAPI.Controllers
                 lsBookMaster = (from b in _context.Books
                                 join users in _context.Users on b.UserId equals users.UserId
                                 join category in _context.Categories on b.CategoryId equals category.CategoryId
-                              
+                                where b.Active == true
                                 select new
                                 {
                                     BookId = b.BookId,

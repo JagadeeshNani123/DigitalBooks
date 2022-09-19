@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using DigitalBooksWebAPI.Models;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using DigitalBooksWebAPI.Services;
+using Polly;
 
 namespace DigitalBooksWebAPI.Controllers
 {
@@ -101,8 +102,10 @@ namespace DigitalBooksWebAPI.Controllers
               return Problem("Entity set 'DigitalBooksContext.Purchases'  is null.");
           }
             var purchasesList = await _context.Purchases.ToListAsync();
-            var purchaseId = purchase.PurchaseId == 0 ? purchasesList.Max(x => x.PurchaseId) + 1 : 1;
-            purchase.PurchaseDate = DateTime.UtcNow;
+            var purchaseId = 1;
+            if (_context.Purchases.Count() != 0)
+                purchaseId = purchasesList.Max(x => x.PurchaseId) + 1 ;
+            purchase.PurchaseDate = DateTime.Now;
             purchase.PurchaseId = purchaseId;
             _context.Purchases.Add(purchase);
             try
@@ -147,7 +150,7 @@ namespace DigitalBooksWebAPI.Controllers
         // Get purchased book history
         [HttpGet]
         [Route("GetPurchasedBookHistory")]
-        public List<BookHistoryViewModel> GetPurchasedBookHistory(string EmailId)
+        public List<BookHistoryViewModel> GetPurchasedBookHistory(string emailId)
         {
             List<BookHistoryViewModel> lsBookHistory = new List<BookHistoryViewModel>();
             if (_context.Purchases == null)
@@ -155,22 +158,45 @@ namespace DigitalBooksWebAPI.Controllers
                 return lsBookHistory;
             }
 
-            lsBookHistory = (from purchase in _context.Purchases
-                             join book in _context.Books on purchase.BookId equals book.BookId
-                             where purchase.EmailId == EmailId && book.Active == true
+            lsBookHistory = (from book in _context.Books
+                             join user in _context.Users
+                             on book.UserId equals user.UserId
+                             join category in _context.Categories
+                             on book.CategoryId equals category.CategoryId
+                             join purchase in _context.Purchases
+                  on book.BookId equals purchase.BookId
+                  into BookPurchaseGroup
+                             from pur in BookPurchaseGroup.DefaultIfEmpty()
                              select new
                              {
-                                 purchaseId = purchase.PurchaseId,
-                                 bookId = book.BookId,
-                                 bookName = book.BookName
+                                 BookId = book.BookId,
+                                 Title = book.BookName,
+                                 Author = user.UserName,
+                                 Publisher = book.Publisher,
+                                 Price = book.Price,
+                                 PublishedDate = book.PublishedDate,
+                                 CategoryName = category.CategoryName,
+                                 EmailId = user.EmailId
                              }).ToList()
-                     .Select(x => new BookHistoryViewModel()
-                     {
-                         PurchaseId = x.purchaseId,
-                         BookId = x.bookId,
-                         BookName = x.bookName
-                     }).ToList();
-
+            .Select(x => new BookHistoryViewModel()
+            {
+                BookId= x.BookId,
+                Title = x.Title,
+                Author = x.Author,
+                Publisher = x.Publisher,
+                Price = Convert.ToDouble(x.Price),
+                PublishedDate = x.PublishedDate,
+                CategoryName = x.CategoryName,
+                EmailId = x.EmailId
+            }).ToList();
+            var historyRecord = new List<BookHistoryViewModel>();
+            var purchaseHistoryBooks = _context.Purchases.Where(p => p.EmailId == emailId).ToList();
+            foreach (var purchase in purchaseHistoryBooks)
+            {
+                historyRecord.AddRange(lsBookHistory.Where(x => x.BookId == purchase.BookId).ToList().Distinct().ToList());
+                
+            }
+            lsBookHistory= historyRecord;
             return lsBookHistory.Distinct().ToList();
         }
         // Get All Books With Status Purchase or not
@@ -192,7 +218,8 @@ namespace DigitalBooksWebAPI.Controllers
                              on book.CategoryId equals category.CategoryId
                              join purchase in _context.Purchases
                   on book.BookId equals purchase.BookId
-                  into BookPurchaseGroup
+
+                  into BookPurchaseGroup 
                              from pur in BookPurchaseGroup.DefaultIfEmpty()
                              select new
                              {
@@ -204,7 +231,7 @@ namespace DigitalBooksWebAPI.Controllers
                                  Price = book.Price,
                                  PublishedDate = book.PublishedDate,
                                  CategoryName = category.CategoryName,
-                                 Email = pur.EmailId == null || pur.EmailId!=emailId ? "NA" : pur.EmailId,
+                                 Email = pur.EmailId == null || pur.EmailId != emailId ? "NA" : pur.EmailId,
                                  BookContent = book.Content,
                                  Active = book.Active
                              }).ToList()
@@ -222,10 +249,11 @@ namespace DigitalBooksWebAPI.Controllers
                 Active = x.Active
             }).ToList();
 
-           
 
+            lsBookHistory.RemoveAll(lb => lb.Active == false);
             lsBookHistory = lsBookHistory.Where(x => x.Email == emailId || x.Email == "NA").ToList().Distinct().ToList();
             lsBookHistory = lsBookHistory.GroupBy(x => x.BookId).Select(y => y.First()).ToList();
+            
             return lsBookHistory;
         }
 

@@ -91,10 +91,12 @@ namespace DigitalBooksWebAPI.Controllers
             if (users.Count == 0)
             {
                 userId = 1;
-                return Problem("Entity set 'DigitalBooksContext.Users'  is null.");
+                
             }
             if (userId == 0)
                 user.UserId = users.Max(x => x.UserId) + 1;
+            if (users.Any(u => u.UserName == user.UserName))
+                throw new Exception("User name already exists");
 
             _context.Users.Add(user);
 
