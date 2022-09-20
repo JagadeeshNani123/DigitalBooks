@@ -58,7 +58,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//app.UseOcelot().Wait();
 
 app.MapPost("/validate", [AllowAnonymous] (UserValidationRequestModel request) =>
 {
@@ -97,9 +96,9 @@ app.UseCors("default");
 
 app.UseHttpsRedirection();
 
+//app.UseOcelot().Wait();
+
 app.UseAuthorization();
-
-
 
 app.MapControllers();
 

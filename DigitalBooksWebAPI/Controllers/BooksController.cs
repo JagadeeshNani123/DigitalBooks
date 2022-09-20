@@ -249,7 +249,7 @@ namespace DigitalBooksWebAPI.Controllers
                                 {
                                     BookId = b.BookId,
                                     BookName = b.BookName,
-                                    Author = users.FirstName + " " + users.LastName,
+                                    Author = users.UserName,
                                     Publisher = b.Publisher,
                                     Price = b.Price,
                                     PublishedDate = b.PublishedDate,
@@ -270,10 +270,16 @@ namespace DigitalBooksWebAPI.Controllers
                                     Active = x.Active,
                                     BookContent = x.BookContent
                                 }).ToList();
+                
             }
             catch (Exception ex)
             {
                 return lsBookMaster;
+            }
+            var author = _context.Users.FirstOrDefault(u => u.UserId == authorID);
+            if(author!=null)
+            {
+                lsBookMaster = lsBookMaster.Where(bm => bm.Author == author.UserName).ToList();
             }
 
             return lsBookMaster;

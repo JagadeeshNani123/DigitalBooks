@@ -193,10 +193,15 @@ namespace DigitalBooksWebAPI.Controllers
             var purchaseHistoryBooks = _context.Purchases.Where(p => p.EmailId == emailId).ToList();
             foreach (var purchase in purchaseHistoryBooks)
             {
-                historyRecord.AddRange(lsBookHistory.Where(x => x.BookId == purchase.BookId).ToList().Distinct().ToList());
+                if (historyRecord.Count == 0 || historyRecord.Any(hr => hr.BookId != purchase.BookId))
+                {
+                    var bookHistory = lsBookHistory.FirstOrDefault(x => x.BookId == purchase.BookId);
+                    if (bookHistory != null)
+                        historyRecord.Add(bookHistory);
+                }
                 
             }
-            lsBookHistory= historyRecord;
+            lsBookHistory= historyRecord.Distinct().ToList();
             return lsBookHistory.Distinct().ToList();
         }
         // Get All Books With Status Purchase or not
@@ -231,7 +236,8 @@ namespace DigitalBooksWebAPI.Controllers
                                  Price = book.Price,
                                  PublishedDate = book.PublishedDate,
                                  CategoryName = category.CategoryName,
-                                 Email = pur.EmailId == null || pur.EmailId != emailId ? "NA" : pur.EmailId,
+                                 
+                                 Email = (pur.EmailId == null || pur.EmailId != emailId) ? "NA" : pur.EmailId,
                                  BookContent = book.Content,
                                  Active = book.Active
                              }).ToList()

@@ -10,7 +10,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": "7286"
+          "Port": "44392"
         }
       ],
       "UpstreamPathTemplate": "/abcd/xyz",
@@ -78,6 +78,6 @@
 
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:44392/"
+    "BaseUrl": "https://localhost:44394/"
   }
 }
