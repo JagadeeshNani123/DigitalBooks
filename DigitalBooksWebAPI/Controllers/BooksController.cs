@@ -24,6 +24,7 @@ namespace DigitalBooksWebAPI.Controllers
 
         // GET: api/Books
         [HttpGet]
+        [Route("xyz/abc")]
         public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
         {
           if (_context.Books == null)

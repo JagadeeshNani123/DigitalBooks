@@ -47,8 +47,6 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.UseOcelot().Wait();
-
 app.UseCors("default");
 app.MapControllers();
 

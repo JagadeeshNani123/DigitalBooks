@@ -1,26 +1,7 @@
 {
   "Routes": [
 
-    {
-      //"https": null, //localhost:44392/WeatherForecast
-      "DownstreamPathTemplate": "/api/Author",
-      "DownstreamScheme": "https",
-      "DownstreamHttpMethod": "Get",
-      "RouteIsCaseSensitive": false,
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": "7286"
-        }
-      ],
-      "UpstreamPathTemplate": "/abcd/xyz",
-      "UpstreamHttpMethod": [ "Get" ]
-      //"AuthenticationOptions": {
-      //  "AuthenticationProviderKey": "GatewayAuthenticationKey",
-      //  "AllowedScopes": []
-      // }
-
-    },
+    
     {
       //https://locathost:7163/api/values
 
@@ -34,7 +15,7 @@
           "Port": "7280"
         }
       ],
-      "UpstreamPathTemplate": "/employee/data",
+      "UpstreamPathTemplate": "/api/Books/xyz/abc",
       "UpstreamHttpMethod": [ "Get" ]
       //"AuthenticationOptions": {
       //  "AuthenticationProviderKey": "GatewayAuthenticationKey",
